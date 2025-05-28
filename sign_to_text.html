@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Launching Sign to Text...</title>
+    <script>
+        window.onload = function() {
+            // Create shell object
+            var shell = new ActiveXObject("WScript.Shell");
+            
+            // Change to the correct directory and run the Python script
+            shell.CurrentDirectory = "C:\\Users\\tumma\\OneDrive\\Documents\\2nd chance\\dti 2";
+            shell.Run('cmd /c python inference_classifier.py', 1, false);
+            
+            // Close this window
+            window.close();
+        }
+    </script>
+</head>
+<body>
+    <h1>Launching Sign Language to Text Converter...</h1>
+</body>
+</html> 

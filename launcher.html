@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Language Assistant</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #34495e;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px;
+            flex-wrap: wrap;
+            max-width: 1200px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 300px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card img {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            color: #7f8c8d;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .launch-btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 25px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s ease;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+        }
+
+        .launch-btn:hover {
+            background: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Sign Language Assistant</h1>
+        <div class="subtitle">Breaking communication barriers with technology</div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <img src="https://img.icons8.com/color/240/sign-language.png" alt="Sign to Text">
+            <h2>Sign Language to Text</h2>
+            <p>Convert sign language gestures into readable text in real-time using your camera.</p>
+            <button onclick="window.open('sign_to_text.html')" class="launch-btn">Launch Sign to Text</button>
+        </div>
+
+        <div class="card">
+            <img src="https://img.icons8.com/color/240/hand-gesture.png" alt="Text to Sign">
+            <h2>Text to Sign Language</h2>
+            <p>Convert written text into sign language animations for easy understanding.</p>
+            <button onclick="window.open('text_to_sign.html')" class="launch-btn">Launch Text to Sign</button>
+        </div>
+    </div>
+</body>
+</html> 
