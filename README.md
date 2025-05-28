@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Sign Language Web Application
 
 This web application provides real-time sign language detection and translation services through a web interface.
@@ -131,3 +132,7 @@ For support, please:
 1. Check the logs in the `logs` directory
 2. Create an issue in the repository
 3. Contact the maintainers at [contact email] 
+=======
+# sign-language-assistant
+A desktop application for real-time sign language detection and translation. which converts "text to sign" and "sign to text"
+>>>>>>> 6f00991beb10dce68b57f3672a1696304384f474
