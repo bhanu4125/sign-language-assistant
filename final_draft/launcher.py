@@ -5,8 +5,6 @@ import os
 import webbrowser
 import sys
 import importlib.util
-import time
-import re
 
 class SignLanguageAssistant:
     def __init__(self):
@@ -67,24 +65,6 @@ class SignLanguageAssistant:
         ctk.CTkLabel(
             text_frame,
             text="Open the text to sign language converter",
-            font=ctk.CTkFont(size=12)
-        ).pack()
-        
-        # Website button with description
-        website_frame = ctk.CTkFrame(buttons_frame)
-        website_frame.pack(pady=20, padx=30, fill="x")
-        
-        ctk.CTkButton(
-            website_frame,
-            text="Open Website",
-            command=self.launch_website,
-            font=ctk.CTkFont(size=16, weight="bold"),
-            height=50
-        ).pack(pady=10, padx=20, fill="x")
-        
-        ctk.CTkLabel(
-            website_frame,
-            text="Open the Sign Language Assistant website",
             font=ctk.CTkFont(size=12)
         ).pack()
         
@@ -158,20 +138,12 @@ class SignLanguageAssistant:
                 self.status_label.configure(text="Launching sign language detection...")
                 subprocess.Popen([
                     sys.executable,
-                    os.path.join(current_dir, "inference_classifier.py")
+                    os.path.join(current_dir, "sign_language_detector_final.py")
                 ])
                 self.status_label.configure(text="Application launched successfully")
             except Exception as e:
-                # If main application fails, try minimal detector
-                try:
-                    subprocess.Popen([
-                        sys.executable,
-                        os.path.join(current_dir, "minimal_detector.py")
-                    ])
-                    self.status_label.configure(text="Minimal detector launched successfully")
-                except Exception as e:
-                    messagebox.showerror("Error", f"Failed to launch application: {str(e)}")
-                    self.status_label.configure(text="Failed to launch application")
+                messagebox.showerror("Error", f"Failed to launch application: {str(e)}")
+                self.status_label.configure(text="Failed to launch application")
             
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {str(e)}")
@@ -196,16 +168,6 @@ class SignLanguageAssistant:
         except Exception as e:
             messagebox.showerror("Error", f"Failed to launch Text to Sign: {str(e)}")
             self.status_label.configure(text="Failed to open text to sign converter")
-
-    def launch_website(self):
-        try:
-            import webbrowser
-            self.status_label.configure(text="Opening website...")
-            webbrowser.open("https://lambent-hamster-c58619.netlify.app")
-            self.status_label.configure(text="Website opened successfully")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to open website: {str(e)}")
-            self.status_label.configure(text="Failed to open website")
 
     def run(self):
         self.root.mainloop()

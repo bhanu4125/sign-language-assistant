@@ -8,7 +8,7 @@ def launch_sign_to_text():
     subprocess.Popen([sys.executable, script_path], creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 def launch_text_to_sign():
-    html_path = r"C:\Users\tumma\OneDrive\Documents\2nd chance\text to sign\index.html"
+    html_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "text_to_sign.html")
     webbrowser.open(f'file:///{html_path}')
 
 if __name__ == "__main__":

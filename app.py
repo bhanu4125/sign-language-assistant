@@ -8,6 +8,8 @@ import os
 import sys
 import logging
 from datetime import datetime
+import time
+from textblob import Word
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -15,119 +17,140 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Global variables for letter detection
-letter_stable_time = 0
-letter_stable_threshold = 1.5
-last_stable_letter = ""
-current_letter = ""
-formed_text = ""
+class SignLanguageDetector:
+    def __init__(self):
+        # Initialize model and MediaPipe
+        self.model_dict = pickle.load(open('./model.p', 'rb'))
+        self.model = self.model_dict['model']
+        
+        self.mp_hands = mp.solutions.hands
+        self.mp_drawing = mp.solutions.drawing_utils
+        self.mp_drawing_styles = mp.solutions.drawing_styles
+        
+        self.hands = self.mp_hands.Hands(
+            static_image_mode=False,
+            max_num_hands=2,
+            min_detection_confidence=0.3,
+            min_tracking_confidence=0.3
+        )
+        
+        # Timing and stability settings
+        self.letter_stable_time = 0
+        self.letter_stable_threshold = 1.5
+        self.last_stable_letter = ""
+        self.formed_text = ""
+        
+        # Two-hand space settings
+        self.two_hands_detected = False
+        self.two_hands_stable_time = 0
+        self.two_hands_threshold = 0.5
+        self.last_space_time = 0
+        self.space_cooldown = 1.0
 
-try:
-    # Load the DTI2 model
-    model_path = os.path.join(os.path.dirname(__file__), 'model.p')
-    if not os.path.exists(model_path):
-        raise FileNotFoundError(f"Model file not found at {model_path}")
-    
-    model_dict = pickle.load(open(model_path, 'rb'))
-    model = model_dict['model']
-    logger.info("Model loaded successfully")
-except Exception as e:
-    logger.error(f"Error loading model: {str(e)}")
-    model = None
-
-# Initialize MediaPipe
-mp_hands = mp.solutions.hands
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
-
-hands = mp_hands.Hands(
-    static_image_mode=False,
-    max_num_hands=2,
-    min_detection_confidence=0.3,
-    min_tracking_confidence=0.3
-)
+detector = SignLanguageDetector()
 
 def generate_frames():
-    camera = None
-    try:
-        camera = cv2.VideoCapture(0)
-        if not camera.isOpened():
-            raise Exception("Could not open camera")
+    camera = cv2.VideoCapture(0)
+    while True:
+        success, frame = camera.read()
+        if not success:
+            break
         
-        while True:
-            success, frame = camera.read()
-            if not success:
-                break
+        # Flip frame horizontally
+        frame = cv2.flip(frame, 1)
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        results = detector.hands.process(frame_rgb)
+        current_time = time.time()
+        
+        if results.multi_hand_landmarks:
+            num_hands = len(results.multi_hand_landmarks)
             
-            # Process frame for hand detection
-            frame = cv2.flip(frame, 1)
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            results = hands.process(frame_rgb)
-            
-            if results.multi_hand_landmarks:
+            if num_hands == 2:
                 for hand_landmarks in results.multi_hand_landmarks:
-                    mp_drawing.draw_landmarks(
-                        frame,
-                        hand_landmarks,
-                        mp_hands.HAND_CONNECTIONS,
-                        mp_drawing_styles.get_default_hand_landmarks_style(),
-                        mp_drawing_styles.get_default_hand_connections_style()
+                    detector.mp_drawing.draw_landmarks(
+                        frame, hand_landmarks, detector.mp_hands.HAND_CONNECTIONS,
+                        detector.mp_drawing_styles.get_default_hand_landmarks_style(),
+                        detector.mp_drawing_styles.get_default_hand_connections_style()
                     )
+                
+                if not detector.two_hands_detected:
+                    detector.two_hands_detected = True
+                    detector.two_hands_stable_time = current_time
+                elif (current_time - detector.two_hands_stable_time >= detector.two_hands_threshold and 
+                      current_time - detector.last_space_time >= detector.space_cooldown):
+                    detector.formed_text += " "
+                    detector.last_space_time = current_time
+            else:
+                detector.two_hands_detected = False
+                detector.two_hands_stable_time = 0
+                
+                hand_landmarks = results.multi_hand_landmarks[0]
+                detector.mp_drawing.draw_landmarks(
+                    frame, hand_landmarks, detector.mp_hands.HAND_CONNECTIONS,
+                    detector.mp_drawing_styles.get_default_hand_landmarks_style(),
+                    detector.mp_drawing_styles.get_default_hand_connections_style()
+                )
+                
+                data_aux = []
+                x_ = []
+                y_ = []
+                
+                for i in range(len(hand_landmarks.landmark)):
+                    x = hand_landmarks.landmark[i].x
+                    y = hand_landmarks.landmark[i].y
+                    x_.append(x)
+                    y_.append(y)
+                
+                for i in range(len(hand_landmarks.landmark)):
+                    x = hand_landmarks.landmark[i].x
+                    y = hand_landmarks.landmark[i].y
+                    data_aux.append(x - min(x_))
+                    data_aux.append(y - min(y_))
+                
+                prediction = detector.model.predict([np.asarray(data_aux)])
+                predicted_character = prediction[0]
+                
+                if predicted_character == detector.last_stable_letter:
+                    if detector.letter_stable_time == 0:
+                        detector.letter_stable_time = current_time
                     
-                    if model is not None:
-                        # Process landmarks for prediction
-                        data_aux = []
-                        x_ = []
-                        y_ = []
-                        
-                        for i in range(len(hand_landmarks.landmark)):
-                            x = hand_landmarks.landmark[i].x
-                            y = hand_landmarks.landmark[i].y
-                            x_.append(x)
-                            y_.append(y)
-                        
-                        for i in range(len(hand_landmarks.landmark)):
-                            x = hand_landmarks.landmark[i].x
-                            y = hand_landmarks.landmark[i].y
-                            data_aux.append(x - min(x_))
-                            data_aux.append(y - min(y_))
-                        
-                        prediction = model.predict([np.asarray(data_aux)])
-                        predicted_character = prediction[0]
-                        
-                        # Draw prediction on frame
-                        x1 = int(min(x_) * frame.shape[1]) - 10
-                        y1 = int(min(y_) * frame.shape[0]) - 10
-                        
-                        cv2.putText(frame, predicted_character, (x1, y1 - 10),
-                                  cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 0, 255), 3,
-                                  cv2.LINE_AA)
-            
-            # Convert frame to jpg
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame = buffer.tobytes()
-            
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-    except Exception as e:
-        logger.error(f"Error in generate_frames: {str(e)}")
-        if camera is not None:
-            camera.release()
-        yield b''
+                    if current_time - detector.letter_stable_time >= detector.letter_stable_threshold:
+                        detector.formed_text += predicted_character
+                        detector.letter_stable_time = 0
+                else:
+                    detector.last_stable_letter = predicted_character
+                    detector.letter_stable_time = 0
+                
+                x1 = int(min(x_) * frame.shape[1]) - 10
+                y1 = int(min(y_) * frame.shape[0]) - 10
+                
+                cv2.putText(frame, predicted_character, (x1, y1 - 40),
+                          cv2.FONT_HERSHEY_SIMPLEX, 1.3, (0, 255, 0), 3, cv2.LINE_AA)
+        
+        ret, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+        
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', text=detector.formed_text)
 
 @app.route('/video_feed')
 def video_feed():
-    return Response(generate_frames(),
-                   mimetype='multipart/x-mixed-replace; boundary=frame')
+    return Response(generate_frames(), 
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
 
 @app.route('/get_text')
 def get_text():
-    global formed_text
-    return jsonify({'text': formed_text})
+    return {'text': detector.formed_text}
+
+@app.route('/clear_text')
+def clear_text():
+    detector.formed_text = ""
+    return {'status': 'success'}
 
 @app.route('/translate/<text>/<lang>')
 def translate_text(text, lang):

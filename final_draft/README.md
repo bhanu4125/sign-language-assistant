@@ -1,6 +1,6 @@
-# Sign Language Assistant
+# Sign Language Assistant (Final Version)
 
-A desktop application for real-time sign language detection and translation. This application can convert sign language to text and includes features like multi-language translation and text-to-speech.
+A desktop application for real-time sign language detection and translation. This application can convert sign language to text and includes features like multi-language translation and text-to-speech. This is the final, stable version with all dependencies properly configured.
 
 ## Features
 
@@ -20,17 +20,18 @@ A desktop application for real-time sign language detection and translation. Thi
 
 ## Installation
 
-1. Clone or download this repository
+1. Extract all files to a directory of your choice
 2. Run `setup.bat` to install required dependencies
-3. Ensure `model.p` file is present in the root directory
+3. Ensure `model.p` file is present in the same directory
 
 ## Usage
 
-1. Run `inference_classifier.py` to start the application
-2. Show hand signs clearly in front of the camera
-3. Hold a sign steady for 1.5 seconds to register a letter
-4. Show both hands for adding a space
-5. Use the GUI controls to:
+1. Run `launcher.py` to start the application
+2. Click "Sign Language to Text" to open the detector
+3. Show hand signs clearly in front of the camera
+4. Hold a sign steady for 1.5 seconds to register a letter
+5. Show both hands for adding a space
+6. Use the GUI controls to:
    - Clear text
    - Speak text (original/translated)
    - Change translation language
@@ -46,6 +47,7 @@ A desktop application for real-time sign language detection and translation. Thi
 
 ## Dependencies
 
+All dependencies are automatically installed by setup.bat:
 - opencv-python
 - mediapipe
 - numpy
@@ -63,7 +65,7 @@ A desktop application for real-time sign language detection and translation. Thi
    - Verify camera permissions
 
 2. Model Loading Issues:
-   - Verify `model.p` exists in the root directory
+   - Verify `model.p` exists in the same directory as the application
    - Check if all dependencies are properly installed
 
 3. Translation Issues:
