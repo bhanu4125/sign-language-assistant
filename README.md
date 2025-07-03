@@ -7,6 +7,7 @@ A desktop application for real-time sign language detection and translation. Thi
 - Real-time sign language detection using webcam
 - Text-to-speech for both original and translated text
 - Multi-language translation support (English, Telugu, Hindi, Tamil, German)
+- can able to speak the input text after the dection
 - Word suggestions and corrections
 - Modern dark-themed GUI
 - Space gesture recognition (show both hands)
